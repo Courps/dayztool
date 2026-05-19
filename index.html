@@ -31,7 +31,6 @@
             <button onclick="switchTab('teleporter')" id="tab-teleporter" class="tab-btn tab-inactive">🌀 Teleport (JSON)</button>
             <button onclick="switchTab('vehicle')" id="tab-vehicle" class="tab-btn tab-inactive">🚗 Spawns (XML)</button>
         </div>
-
         <div id="view-relocator" class="space-y-6 block">
             <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl">
                 <h2 class="text-md sm:text-lg font-bold uppercase tracking-wider mb-3"><span class="rainbow-text">Step 1: Load Map File (.json)</span></h2>
@@ -137,7 +136,7 @@
             <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl">
                 <h2 class="text-md sm:text-lg font-bold uppercase tracking-wider mb-3"><span class="rainbow-text">Step 1: Load Spawns File (.xml)</span></h2>
                 <input type="file" id="xmlUpload" accept=".xml" onchange="loadXmlFile(this.files[0])" class="block w-full text-xs sm:text-sm text-zinc-400 file:mr-3 sm:file:mr-4 file:py-2.5 file:px-4 sm:file:px-6 file:rounded-md file:border-0 file:text-xs sm:file:text-sm file:font-bold file:bg-zinc-800 file:text-white hover:file:bg-zinc-700 file:cursor-pointer transition border border-zinc-700 rounded-md bg-zinc-900"/>
-                <div id="xmlFileStatus" class="mt-3 text-xs sm:text-sm font-bold text-teal-400 hidden">File loaded! Found <span id="xmlItemCount">0</span> spawn points.</div>
+                <div id="xmlFileStatus" class="mt-3 text-xs sm:text-sm font-bold text-teal-400 hidden">File loaded! Found <span id="xmlItemCount">0</span> vehicle spawn points.</div>
             </div>
 
             <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-xl border-l-4 border-l-zinc-600">
@@ -170,7 +169,7 @@
                     </div>
                 </div>
             </div>
-            <button onclick="processAndDownloadXml()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 hover:opacity-90 text-white font-extrabold py-4 rounded-xl transition tracking-wide uppercase text-sm sm:text-base shadow-[0_0_20px_rgba(99,102,241,0.2)]">MOVE SPAWNS & EXPORT XML</button>
+            <button onclick="processAndDownloadXml()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 hover:opacity-90 text-white font-extrabold py-4 rounded-xl transition tracking-wide uppercase text-sm sm:text-base shadow-[0_0_20px_rgba(99,102,241,0.2)]">MOVE VEHICLES & EXPORT XML</button>
         </div>
     </div>
 
@@ -182,7 +181,6 @@
             <button onclick="closeSupportNotification()" class="w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold py-3 px-4 rounded-xl transition text-sm tracking-wide">DISMISS SYSTEM</button>
         </div>
     </div>
-
     <script>
         function switchTab(tabId) {
             const tabs = ['relocator', 'teleporter', 'vehicle'];
@@ -255,6 +253,7 @@
             });
             downloadFile(JSON.stringify(exportedData, null, 2), originalFileName, "application/json");
         }
+
         let teleRawJsonData = null, teleOriginalFileName = "Relocated_Teleport.json", teleFileType = "";
         let teleCenterX = 0, teleCenterY = 0, teleCenterZ = 0, safeCenterX = 0, safeCenterY = 0, safeCenterZ = 0, originalTeleHeading = 0;
 
@@ -344,7 +343,6 @@
             }
             downloadFile(JSON.stringify(exportedData, null, 4), teleOriginalFileName, "application/json");
         }
-
         let xmlDoc = null, xmlOriginalFileName = "cfgeventspawns_relocated.xml";
         let xmlCenterX = 0, xmlCenterZ = 0, xmlOriginalHeading = 0;
 
@@ -358,22 +356,31 @@
                     const posNodes = xmlDoc.getElementsByTagName("pos");
                     if (posNodes.length === 0) { alert("No <pos> tags found in XML file."); return; }
 
-                    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+                    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity, vehicleCount = 0;
+                    
                     for(let i=0; i<posNodes.length; i++) {
+                        let evt = posNodes[i].parentNode;
+                        if (!evt || !evt.getAttribute("name") || !evt.getAttribute("name").toLowerCase().includes("vehicle")) continue;
                         let aVal = posNodes[i].getAttribute("a");
                         if(aVal !== null) { xmlOriginalHeading = parseFloat(aVal); break; }
                     }
+                    
                     for(let i=0; i<posNodes.length; i++) {
+                        let evt = posNodes[i].parentNode;
+                        if (!evt || !evt.getAttribute("name") || !evt.getAttribute("name").toLowerCase().includes("vehicle")) continue;
                         let x = parseFloat(posNodes[i].getAttribute("x")), z = parseFloat(posNodes[i].getAttribute("z"));
                         if(!isNaN(x) && !isNaN(z)) {
                             if (x < minX) minX = x; if (x > maxX) maxX = x;
                             if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+                            vehicleCount++;
                         }
                     }
 
+                    if (vehicleCount === 0) { alert("No vehicle spawns found in XML file."); return; }
+
                     xmlCenterX = (minX + maxX) / 2; xmlCenterZ = (minZ + maxZ) / 2;
-                    document.getElementById('xmlItemCount').innerText = posNodes.length; document.getElementById('xmlFileStatus').classList.remove('hidden');
-                    document.getElementById('xmlCurrX').innerText = xmlCenterX.toFixed(2); document.getElementById('xmlCenterZ').innerText = xmlCenterZ.toFixed(2);
+                    document.getElementById('xmlItemCount').innerText = vehicleCount; document.getElementById('xmlFileStatus').classList.remove('hidden');
+                    document.getElementById('xmlCurrX').innerText = xmlCenterX.toFixed(2); document.getElementById('xmlCurrZ').innerText = xmlCenterZ.toFixed(2);
                     document.getElementById('xmlCurrHeading').innerText = xmlOriginalHeading.toFixed(1) + "°";
                     document.getElementById('xmlTargetX').value = xmlCenterX.toFixed(2); document.getElementById('xmlTargetZ').value = xmlCenterZ.toFixed(2);
                     document.getElementById('xmlTargetRotation').value = xmlOriginalHeading.toFixed(2);
@@ -388,6 +395,9 @@
             const posNodes = xmlDoc.getElementsByTagName("pos");
             
             for(let i=0; i<posNodes.length; i++) {
+                let evt = posNodes[i].parentNode;
+                if (!evt || !evt.getAttribute("name") || !evt.getAttribute("name").toLowerCase().includes("vehicle")) continue;
+
                 let node = posNodes[i], curX = parseFloat(node.getAttribute("x")), curZ = parseFloat(node.getAttribute("z")), curA = parseFloat(node.getAttribute("a"));
                 if(!isNaN(curX) && !isNaN(curZ)) {
                     let dx = curX - xmlCenterX, dz = curZ - xmlCenterZ, rotatedX = dx * cosA + dz * sinA, rotatedZ = -dx * sinA + dz * cosA;
