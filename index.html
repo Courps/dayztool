@@ -12,23 +12,29 @@
         @keyframes rainbow-flow { to { background-position: 200% center; } }
         input[type="number"] { -moz-appearance: textfield; }
         input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .tab-btn { flex: 1; text-align: center; padding: 0.75rem 0.25rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; transition: all 0.2s; white-space: nowrap; }
+        @media (min-width: 640px) { .tab-btn { font-size: 0.875rem; padding: 0.75rem 0.5rem; } }
+        .tab-active { background: linear-gradient(to right, #27272a, #3f3f46); color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .tab-inactive { color: #a1a1aa; }
+        .tab-inactive:hover { color: white; }
     </style>
 </head>
 <body class="p-3 sm:p-6 lg:p-8 min-h-screen flex flex-col items-center justify-start">
     <div class="max-w-3xl w-full space-y-6">
         <div class="text-center my-4">
             <h1 class="text-2xl sm:text-4xl font-extrabold tracking-wide mb-2"><span class="rainbow-text">DayZ Admin Toolkit</span></h1>
-            <p class="text-xs sm:text-sm font-medium text-zinc-400 px-2">Supports independent objects, scripts, and mixed developer files.</p>
+            <p class="text-xs sm:text-sm font-medium text-zinc-400 px-2">Supports independent objects, scripts, and XML event spawns.</p>
         </div>
 
-        <div class="flex bg-zinc-900 p-1.5 rounded-xl border border-zinc-800 gap-2">
-            <button onclick="switchTab('relocator')" id="tab-relocator" class="flex-1 text-center py-3 rounded-lg text-sm font-bold transition-all bg-gradient-to-r from-zinc-800 to-zinc-700 text-white shadow-md">🏗️ Build Relocator</button>
-            <button onclick="switchTab('teleporter')" id="tab-teleporter" class="flex-1 text-center py-3 rounded-lg text-sm font-bold transition-all text-zinc-400 hover:text-white">🌀 Teleport Relocator</button>
+        <div class="flex bg-zinc-900 p-1.5 rounded-xl border border-zinc-800 gap-1 sm:gap-2 overflow-x-auto">
+            <button onclick="switchTab('relocator')" id="tab-relocator" class="tab-btn tab-active">🏗️ Build (JSON)</button>
+            <button onclick="switchTab('teleporter')" id="tab-teleporter" class="tab-btn tab-inactive">🌀 Teleport (JSON)</button>
+            <button onclick="switchTab('vehicle')" id="tab-vehicle" class="tab-btn tab-inactive">🚗 Spawns (XML)</button>
         </div>
 
-        <div id="view-relocator" class="space-y-6">
+        <div id="view-relocator" class="space-y-6 block">
             <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl">
-                <h2 class="text-md sm:text-lg font-bold uppercase tracking-wider mb-3"><span class="rainbow-text">Step 1: Load Map File</span></h2>
+                <h2 class="text-md sm:text-lg font-bold uppercase tracking-wider mb-3"><span class="rainbow-text">Step 1: Load Map File (.json)</span></h2>
                 <input type="file" id="jsonUpload" accept=".json" onchange="loadFile(this.files[0])" class="block w-full text-xs sm:text-sm text-zinc-400 file:mr-3 sm:file:mr-4 file:py-2.5 file:px-4 sm:file:px-6 file:rounded-md file:border-0 file:text-xs sm:file:text-sm file:font-bold file:bg-zinc-800 file:text-white hover:file:bg-zinc-700 file:cursor-pointer transition border border-zinc-700 rounded-md bg-zinc-900"/>
                 <div id="fileStatus" class="mt-3 text-xs sm:text-sm font-bold text-teal-400 hidden">File loaded! Found <span id="itemCount">0</span> elements.</div>
             </div>
@@ -44,7 +50,7 @@
             </div>
 
             <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl border-t-4 border-t-orange-500">
-                <h2 class="text-base sm:text-lg font-bold uppercase tracking-wider mb-1"><span class="rainbow-text">Step 2: Set New Target Coordinates</span></h2>
+                <h2 class="text-base sm:text-lg font-bold uppercase tracking-wider mb-1"><span class="rainbow-text">Step 2: Set Target Coordinates</span></h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Target X</label><input type="number" id="targetX" value="0.00" step="0.01" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white font-mono text-base focus:border-orange-500 outline-none transition"></div>
                     <div><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Target Y (Altitude)</label><input type="number" id="targetY" value="0.00" step="0.01" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white font-mono text-base focus:border-orange-500 outline-none transition"></div>
@@ -53,14 +59,14 @@
             </div>
 
             <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl border-t-4 border-t-purple-500">
-                <h2 class="text-base sm:text-lg font-bold uppercase tracking-wider mb-1"><span class="rainbow-text">Step 3: Set New Rotation Direction</span></h2>
+                <h2 class="text-base sm:text-lg font-bold uppercase tracking-wider mb-1"><span class="rainbow-text">Step 3: Set Rotation</span></h2>
                 <div class="flex flex-col sm:flex-row gap-4 items-center">
                     <div class="w-full sm:w-1/3"><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Rotation (0-360°)</label><input type="number" id="targetRotation" value="0" min="0" max="360" step="0.01" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white font-mono text-base focus:border-purple-500 outline-none transition text-center"></div>
                     <div class="w-full sm:w-2/3 grid grid-cols-4 gap-1.5 pt-2 sm:pt-4">
-                        <button onclick="setRotationValue(0)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">0° (North)</button>
-                        <button onclick="setRotationValue(90)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">90° (East)</button>
-                        <button onclick="setRotationValue(180)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">180° (South)</button>
-                        <button onclick="setRotationValue(270)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">270° (West)</button>
+                        <button onclick="setRotationValue('targetRotation', 0)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">0° (N)</button>
+                        <button onclick="setRotationValue('targetRotation', 90)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">90° (E)</button>
+                        <button onclick="setRotationValue('targetRotation', 180)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">180° (S)</button>
+                        <button onclick="setRotationValue('targetRotation', 270)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">270° (W)</button>
                     </div>
                 </div>
             </div>
@@ -69,14 +75,14 @@
 
         <div id="view-teleporter" class="hidden space-y-6">
             <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl">
-                <h2 class="text-md sm:text-lg font-bold uppercase tracking-wider mb-3"><span class="rainbow-text">Step 1: Load Teleport File</span></h2>
+                <h2 class="text-md sm:text-lg font-bold uppercase tracking-wider mb-3"><span class="rainbow-text">Step 1: Load Teleport File (.json)</span></h2>
                 <input type="file" id="teleJsonUpload" accept=".json" onchange="loadTeleportFile(this.files[0])" class="block w-full text-xs sm:text-sm text-zinc-400 file:mr-3 sm:file:mr-4 file:py-2.5 file:px-4 sm:file:px-6 file:rounded-md file:border-0 file:text-xs sm:file:text-sm file:font-bold file:bg-zinc-800 file:text-white hover:file:bg-zinc-700 file:cursor-pointer transition border border-zinc-700 rounded-md bg-zinc-900"/>
                 <div id="teleFileStatus" class="mt-3 text-xs sm:text-sm font-bold text-teal-400 hidden">Loaded Profile: <span id="teleDetectedType" class="text-white bg-zinc-800 px-2 py-0.5 rounded">None</span></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="panel-bg rounded-xl p-4 border-l-4 border-l-amber-500 shadow-xl">
-                    <h2 class="text-xs font-bold uppercase tracking-wider mb-2 text-zinc-400">Current Trigger Box (PRABoxes)</h2>
+                    <h2 class="text-xs font-bold uppercase tracking-wider mb-2 text-zinc-400">Current Trigger Box</h2>
                     <div class="grid grid-cols-3 gap-2 text-center text-xs">
                         <div class="bg-zinc-900 p-2 rounded"><span class="block text-[8px] text-zinc-500 font-bold">X</span><span id="teleX" class="text-white font-mono font-bold">0.00</span></div>
                         <div class="bg-zinc-900 p-2 rounded"><span class="block text-[8px] text-zinc-500 font-bold">Y</span><span id="teleY" class="text-white font-mono font-bold">0.00</span></div>
@@ -84,7 +90,7 @@
                     </div>
                 </div>
                 <div class="panel-bg rounded-xl p-4 border-l-4 border-l-teal-500 shadow-xl">
-                    <h2 class="text-xs font-bold uppercase tracking-wider mb-2 text-zinc-400">Current Landing Spot (safePositions3D)</h2>
+                    <h2 class="text-xs font-bold uppercase tracking-wider mb-2 text-zinc-400">Current Landing Spot</h2>
                     <div class="grid grid-cols-3 gap-2 text-center text-xs">
                         <div class="bg-zinc-900 p-2 rounded"><span class="block text-[8px] text-zinc-500 font-bold">X</span><span id="safeX" class="text-white font-mono font-bold">0.00</span></div>
                         <div class="bg-zinc-900 p-2 rounded"><span class="block text-[8px] text-zinc-500 font-bold">Y</span><span id="safeY" class="text-white font-mono font-bold">0.00</span></div>
@@ -95,7 +101,7 @@
 
             <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl border-t-4 border-t-teal-500 space-y-6">
                 <div>
-                    <h2 class="text-sm font-bold uppercase tracking-wider mb-2 text-amber-400">📍 Set New Trigger Position (Where player walks on)</h2>
+                    <h2 class="text-sm font-bold uppercase tracking-wider mb-2 text-amber-400">📍 Set New Trigger Position</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Trigger Target X</label><input type="number" id="teleTargetX" value="0.00" step="0.01" oninput="updateTeleportTargets()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-white font-mono focus:border-amber-500 outline-none"></div>
                         <div><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Trigger Target Y</label><input type="number" id="teleTargetY" value="0.00" step="0.01" oninput="updateTeleportTargets()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-white font-mono focus:border-amber-500 outline-none"></div>
@@ -104,20 +110,20 @@
                 </div>
 
                 <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl border-t-4 border-t-purple-500">
-                    <h2 class="text-base sm:text-lg font-bold uppercase tracking-wider mb-1"><span class="rainbow-text">Step 3: Set New Rotation Direction</span></h2>
+                    <h2 class="text-base sm:text-lg font-bold uppercase tracking-wider mb-1"><span class="rainbow-text">Step 3: Set Rotation</span></h2>
                     <div class="flex flex-col sm:flex-row gap-4 items-center">
                         <div class="w-full sm:w-1/3"><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Rotation (0-360°)</label><input type="number" id="teleTargetRotation" value="0" min="0" max="360" step="0.01" oninput="updateTeleportTargets()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white font-mono text-base focus:border-purple-500 outline-none transition text-center"></div>
                         <div class="w-full sm:w-2/3 grid grid-cols-4 gap-1.5 pt-2 sm:pt-4">
-                            <button onclick="setTeleRotationValue(0)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">0° (North)</button>
-                            <button onclick="setTeleRotationValue(90)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">90° (East)</button>
-                            <button onclick="setTeleRotationValue(180)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">180° (South)</button>
-                            <button onclick="setTeleRotationValue(270)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">270° (West)</button>
+                            <button onclick="setRotationValue('teleTargetRotation', 0); updateTeleportTargets()" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">0° (N)</button>
+                            <button onclick="setRotationValue('teleTargetRotation', 90); updateTeleportTargets()" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">90° (E)</button>
+                            <button onclick="setRotationValue('teleTargetRotation', 180); updateTeleportTargets()" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">180° (S)</button>
+                            <button onclick="setRotationValue('teleTargetRotation', 270); updateTeleportTargets()" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">270° (W)</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="border-t border-zinc-800 pt-4">
-                    <h2 class="text-sm font-bold uppercase tracking-wider mb-2 text-teal-400">🏁 Set New Arrival Destination (Where player drops out)</h2>
+                    <h2 class="text-sm font-bold uppercase tracking-wider mb-2 text-teal-400">🏁 Generated Arrival Destination</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Arrival Target X</label><input type="number" id="safeTargetX" value="0.00" step="0.01" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-white font-mono focus:border-teal-500 outline-none"></div>
                         <div><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Arrival Target Y</label><input type="number" id="safeTargetY" value="0.00" step="0.01" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-white font-mono focus:border-teal-500 outline-none"></div>
@@ -125,8 +131,46 @@
                     </div>
                 </div>
             </div>
-
             <button onclick="processAndDownloadTeleport()" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:opacity-90 text-white font-extrabold py-4 rounded-xl transition tracking-wide uppercase text-sm sm:text-base shadow-[0_0_20px_rgba(20,184,166,0.2)]">SAVE & DOWNLOAD TELEPORT JSON</button>
+        </div>
+        <div id="view-vehicle" class="hidden space-y-6">
+            <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl">
+                <h2 class="text-md sm:text-lg font-bold uppercase tracking-wider mb-3"><span class="rainbow-text">Step 1: Load Spawns File (.xml)</span></h2>
+                <input type="file" id="xmlUpload" accept=".xml" onchange="loadXmlFile(this.files[0])" class="block w-full text-xs sm:text-sm text-zinc-400 file:mr-3 sm:file:mr-4 file:py-2.5 file:px-4 sm:file:px-6 file:rounded-md file:border-0 file:text-xs sm:file:text-sm file:font-bold file:bg-zinc-800 file:text-white hover:file:bg-zinc-700 file:cursor-pointer transition border border-zinc-700 rounded-md bg-zinc-900"/>
+                <div id="xmlFileStatus" class="mt-3 text-xs sm:text-sm font-bold text-teal-400 hidden">File loaded! Found <span id="xmlItemCount">0</span> spawn points.</div>
+            </div>
+
+            <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-xl border-l-4 border-l-zinc-600">
+                <h2 class="text-xs font-bold uppercase tracking-wider mb-3 text-zinc-400">Current Spawn Group Coordinates (Center Point)</h2>
+                <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                    <div class="bg-zinc-900 p-2 rounded"><span class="block text-[9px] uppercase text-zinc-500 font-bold">X Coord</span><span id="xmlCurrX" class="text-white font-mono text-sm sm:text-base font-bold">0.00</span></div>
+                    <div class="bg-zinc-900 p-2 rounded"><span class="block text-[9px] uppercase text-zinc-500 font-bold">Z Coord</span><span id="xmlCurrZ" class="text-white font-mono text-sm sm:text-base font-bold">0.00</span></div>
+                    <div class="bg-zinc-900 p-2 rounded"><span class="block text-[9px] uppercase text-zinc-500 font-bold">Facing Angle</span><span id="xmlCurrHeading" class="text-white font-mono text-sm sm:text-base font-bold">0.0°</span></div>
+                </div>
+            </div>
+
+            <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl border-t-4 border-t-orange-500">
+                <h2 class="text-base sm:text-lg font-bold uppercase tracking-wider mb-1"><span class="rainbow-text">Step 2: Set Target Coordinates</span></h2>
+                <p class="text-[10px] text-zinc-400 mb-3">Note: Event spawns auto-snap to the ground, so Y (height) is not needed.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Target X</label><input type="number" id="xmlTargetX" value="0.00" step="0.01" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white font-mono text-base focus:border-orange-500 outline-none transition"></div>
+                    <div><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Target Z</label><input type="number" id="xmlTargetZ" value="0.00" step="0.01" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white font-mono text-base focus:border-orange-500 outline-none transition"></div>
+                </div>
+            </div>
+
+            <div class="panel-bg rounded-xl p-4 sm:p-6 shadow-2xl border-t-4 border-t-purple-500">
+                <h2 class="text-base sm:text-lg font-bold uppercase tracking-wider mb-1"><span class="rainbow-text">Step 3: Set Rotation</span></h2>
+                <div class="flex flex-col sm:flex-row gap-4 items-center">
+                    <div class="w-full sm:w-1/3"><label class="block text-[10px] uppercase font-bold mb-1 text-zinc-400">Rotation (0-360°)</label><input type="number" id="xmlTargetRotation" value="0" min="0" max="360" step="0.01" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white font-mono text-base focus:border-purple-500 outline-none transition text-center"></div>
+                    <div class="w-full sm:w-2/3 grid grid-cols-4 gap-1.5 pt-2 sm:pt-4">
+                        <button onclick="setRotationValue('xmlTargetRotation', 0)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">0° (N)</button>
+                        <button onclick="setRotationValue('xmlTargetRotation', 90)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">90° (E)</button>
+                        <button onclick="setRotationValue('xmlTargetRotation', 180)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">180° (S)</button>
+                        <button onclick="setRotationValue('xmlTargetRotation', 270)" class="bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg text-[11px] font-bold transition">270° (W)</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="processAndDownloadXml()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 hover:opacity-90 text-white font-extrabold py-4 rounded-xl transition tracking-wide uppercase text-sm sm:text-base shadow-[0_0_20px_rgba(99,102,241,0.2)]">MOVE SPAWNS & EXPORT XML</button>
         </div>
     </div>
 
@@ -138,35 +182,23 @@
             <button onclick="closeSupportNotification()" class="w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold py-3 px-4 rounded-xl transition text-sm tracking-wide">DISMISS SYSTEM</button>
         </div>
     </div>
+
     <script>
-        // Tab 1 Variables
+        function switchTab(tabId) {
+            const tabs = ['relocator', 'teleporter', 'vehicle'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).className = (t === tabId) ? "tab-btn tab-active" : "tab-btn tab-inactive";
+                document.getElementById('view-' + t).style.display = (t === tabId) ? "block" : "none";
+            });
+        }
+
+        function setRotationValue(elementId, val) { document.getElementById(elementId).value = val; }
+
         let rawJsonData = null, objectsArrayRef = null, originalFileName = "Relocated_Map_Objects.json";
         let originalCenterX = 0, originalCenterY = 0, originalCenterZ = 0, originalBaseHeading = 0;
 
-        // Tab 2 Variables
-        let teleRawJsonData = null, teleOriginalFileName = "Relocated_Teleport.json", teleFileType = "";
-        let teleCenterX = 0, teleCenterY = 0, teleCenterZ = 0; 
-        let safeCenterX = 0, safeCenterY = 0, safeCenterZ = 0; 
-        let originalTeleHeading = 0;
-
-        function switchTab(tabId) {
-            const relTab = document.getElementById('tab-relocator'), telTab = document.getElementById('tab-teleporter');
-            const relView = document.getElementById('view-relocator'), telView = document.getElementById('view-teleporter');
-            if(tabId === 'relocator') {
-                relTab.className = "flex-1 text-center py-3 rounded-lg text-sm font-bold transition-all bg-gradient-to-r from-zinc-800 to-zinc-700 text-white shadow-md";
-                telTab.className = "flex-1 text-center py-3 rounded-lg text-sm font-bold transition-all text-zinc-400 hover:text-white";
-                relView.classList.remove('hidden'); telView.classList.add('hidden');
-            } else {
-                telTab.className = "flex-1 text-center py-3 rounded-lg text-sm font-bold transition-all bg-gradient-to-r from-zinc-800 to-zinc-700 text-white shadow-md";
-                relTab.className = "flex-1 text-center py-3 rounded-lg text-sm font-bold transition-all text-zinc-400 hover:text-white";
-                telView.classList.remove('hidden'); relView.classList.add('hidden');
-            }
-        }
-
-        // Tab 1 Logic
         function loadFile(file) {
-            if (!file) return;
-            originalFileName = file.name;
+            if (!file) return; originalFileName = file.name;
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
@@ -175,8 +207,6 @@
                     else if (rawJsonData.EditorObjects && Array.isArray(rawJsonData.EditorObjects)) objectsArrayRef = rawJsonData.EditorObjects;
                     else if (Array.isArray(rawJsonData)) objectsArrayRef = rawJsonData;
                     else { alert("Error: Unsupported DayZ file layout."); return; }
-
-                    if (objectsArrayRef.length === 0) { alert("File contains zero items."); return; }
 
                     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity, validCount = 0;
                     let firstObj = objectsArrayRef[0];
@@ -194,188 +224,13 @@
                     });
 
                     originalCenterX = (minX + maxX) / 2; originalCenterY = (minY + maxY) / 2; originalCenterZ = (minZ + maxZ) / 2;
-
-                    document.getElementById('itemCount').innerText = validCount;
-                    document.getElementById('fileStatus').classList.remove('hidden');
-                    document.getElementById('currX').innerText = originalCenterX.toFixed(2);
-                    document.getElementById('currY').innerText = originalCenterY.toFixed(2);
-                    document.getElementById('currZ').innerText = originalCenterZ.toFixed(2);
-                    document.getElementById('currHeading').innerText = originalBaseHeading.toFixed(1) + "°";
-                    document.getElementById('targetX').value = originalCenterX.toFixed(2);
-                    document.getElementById('targetY').value = originalCenterY.toFixed(2);
-                    document.getElementById('targetZ').value = originalCenterZ.toFixed(2);
-                    document.getElementById('targetRotation').value = originalBaseHeading.toFixed(2);
+                    document.getElementById('itemCount').innerText = validCount; document.getElementById('fileStatus').classList.remove('hidden');
+                    document.getElementById('currX').innerText = originalCenterX.toFixed(2); document.getElementById('currY').innerText = originalCenterY.toFixed(2);
+                    document.getElementById('currZ').innerText = originalCenterZ.toFixed(2); document.getElementById('currHeading').innerText = originalBaseHeading.toFixed(1) + "°";
+                    document.getElementById('targetX').value = originalCenterX.toFixed(2); document.getElementById('targetY').value = originalCenterY.toFixed(2);
+                    document.getElementById('targetZ').value = originalCenterZ.toFixed(2); document.getElementById('targetRotation').value = originalBaseHeading.toFixed(2);
                 } catch(err) { alert("JSON Parsing Fault: " + err.message); }
-            };
-            reader.readAsText(file);
-        }
-
-        // Tab 2 Logic
-        function loadTeleportFile(file) {
-            if (!file) return;
-            teleOriginalFileName = file.name;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    teleRawJsonData = JSON.parse(e.target.result);
-                    let hasTeleportKeys = teleRawJsonData.PRABoxes || teleRawJsonData.safePositions3D;
-                    let teleObjectsArray = teleRawJsonData.Objects || teleRawJsonData.EditorObjects || (Array.isArray(teleRawJsonData) ? teleRawJsonData : null);
-                    let hasStructureObjects = teleObjectsArray && teleObjectsArray.length > 0;
-
-                    if (hasTeleportKeys && hasStructureObjects) {
-                        teleFileType = "Mixed Profile (Teleport + Custom Buildings)";
-                    } else if (hasTeleportKeys) {
-                        teleFileType = "Mod Script Config Mapping";
-                    } else if (hasStructureObjects) {
-                        teleFileType = "Structures Map Build";
-                    } else {
-                        alert("No verifiable coordinates found inside file.");
-                        return;
-                    }
-
-                    if (teleRawJsonData.PRABoxes && teleRawJsonData.PRABoxes[0] && teleRawJsonData.PRABoxes[0][2]) {
-                        let pCoords = teleRawJsonData.PRABoxes[0][2];
-                        teleCenterX = pCoords[0]; teleCenterY = pCoords[1]; teleCenterZ = pCoords[2];
-                    } else if (hasStructureObjects) {
-                        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
-                        teleObjectsArray.forEach(obj => {
-                            let pos = obj.pos || obj.Position;
-                            if (pos && pos.length >= 3) {
-                                if (pos[0] < minX) minX = pos[0]; if (pos[0] > maxX) maxX = pos[0];
-                                if (pos[1] < minY) minY = pos[1]; if (pos[1] > maxY) maxY = pos[1];
-                                if (pos[2] < minZ) minZ = pos[2]; if (pos[2] > maxZ) maxZ = pos[2];
-                            }
-                        });
-                        teleCenterX = (minX + maxX) / 2; teleCenterY = (minY + maxY) / 2; teleCenterZ = (minZ + maxZ) / 2;
-                    } else { teleCenterX = 0; teleCenterY = 0; teleCenterZ = 0; }
-
-                    if (teleRawJsonData.safePositions3D && teleRawJsonData.safePositions3D[0]) {
-                        let sCoords = teleRawJsonData.safePositions3D[0];
-                        safeCenterX = sCoords[0]; safeCenterY = sCoords[1]; safeCenterZ = sCoords[2];
-                    } else { safeCenterX = teleCenterX; safeCenterY = teleCenterY; safeCenterZ = teleCenterZ; }
-
-                    originalTeleHeading = 0;
-                    if (hasStructureObjects) {
-                        let firstObj = teleObjectsArray[0];
-                        let rotKey = firstObj.ypr ? 'ypr' : (firstObj.Orientation ? 'Orientation' : null);
-                        originalTeleHeading = (rotKey && firstObj[rotKey] && firstObj[rotKey].length > 0) ? firstObj[rotKey][0] : 0;
-                    }
-
-                    document.getElementById('teleDetectedType').innerText = teleFileType;
-                    document.getElementById('teleFileStatus').classList.remove('hidden');
-                    document.getElementById('teleX').innerText = teleCenterX.toFixed(2);
-                    document.getElementById('teleY').innerText = teleCenterY.toFixed(2);
-                    document.getElementById('teleZ').innerText = teleCenterZ.toFixed(2);
-                    
-                    document.getElementById('safeX').innerText = safeCenterX.toFixed(2);
-                    document.getElementById('safeY').innerText = safeCenterY.toFixed(2);
-                    document.getElementById('safeZ').innerText = safeCenterZ.toFixed(2);
-                    
-                    document.getElementById('teleTargetX').value = teleCenterX.toFixed(2);
-                    document.getElementById('teleTargetY').value = teleCenterY.toFixed(2);
-                    document.getElementById('teleTargetZ').value = teleCenterZ.toFixed(2);
-                    document.getElementById('teleTargetRotation').value = originalTeleHeading.toFixed(2);
-                    
-                    updateTeleportTargets();
-                } catch(err) { alert("JSON Parsing Fault: " + err.message); }
-            };
-            reader.readAsText(file);
-        }
-
-        function updateTeleportTargets() {
-            if (!teleRawJsonData) return;
-            const tX = parseFloat(document.getElementById('teleTargetX').value) || 0;
-            const tY = parseFloat(document.getElementById('teleTargetY').value) || 0;
-            const tZ = parseFloat(document.getElementById('teleTargetZ').value) || 0;
-            const targetHeading = parseFloat(document.getElementById('teleTargetRotation').value) || 0;
-            
-            let rotDegrees = targetHeading - originalTeleHeading;
-            const rad = rotDegrees * Math.PI / 180;
-            const cosA = Math.cos(rad), sinA = Math.sin(rad);
-            
-            let dx = safeCenterX - teleCenterX;
-            let dz = safeCenterZ - teleCenterZ;
-            let rotatedX = dx * cosA + dz * sinA;
-            let rotatedZ = -dx * sinA + dz * cosA;
-            
-            let shiftY = tY - teleCenterY;
-            
-            document.getElementById('safeTargetX').value = (tX + rotatedX).toFixed(2);
-            document.getElementById('safeTargetY').value = (safeCenterX === teleCenterX && safeCenterZ === teleCenterZ) ? tY.toFixed(2) : (safeCenterY + shiftY).toFixed(2);
-            document.getElementById('safeTargetZ').value = (tZ + rotatedZ).toFixed(2);
-        }
-
-        function setTeleRotationValue(val) { 
-            document.getElementById('teleTargetRotation').value = val; 
-            updateTeleportTargets(); 
-        }
-
-        function processAndDownloadTeleport() {
-            if (!teleRawJsonData) { alert("Please upload a teleport mapping file."); return; }
-            
-            const tX = parseFloat(document.getElementById('teleTargetX').value) || 0;
-            const tY = parseFloat(document.getElementById('teleTargetY').value) || 0;
-            const tZ = parseFloat(document.getElementById('teleTargetZ').value) || 0;
-            const targetHeading = parseFloat(document.getElementById('teleTargetRotation').value) || 0;
-            
-            const sX = parseFloat(document.getElementById('safeTargetX').value) || 0;
-            const sY = parseFloat(document.getElementById('safeTargetY').value) || 0;
-            const sZ = parseFloat(document.getElementById('safeTargetZ').value) || 0;
-            
-            let rotDegrees = targetHeading - originalTeleHeading;
-            const rad = rotDegrees * Math.PI / 180;
-            const cosA = Math.cos(rad), sinA = Math.sin(rad);
-            
-            const exportedData = JSON.parse(JSON.stringify(teleRawJsonData));
-            
-            if (exportedData.PRABoxes && exportedData.PRABoxes[0] && exportedData.PRABoxes[0][2]) {
-                exportedData.PRABoxes[0][2] = [tX, tY, tZ];
-            }
-            if (exportedData.safePositions3D && exportedData.safePositions3D[0]) {
-                exportedData.safePositions3D[0] = [sX, sY, sZ];
-            }
-
-            let exportArray = exportedData.Objects || exportedData.EditorObjects || (Array.isArray(exportedData) ? exportedData : null);
-            if (exportArray && exportArray.length > 0 && teleFileType !== "Mod Script Config Mapping") {
-                const shiftY = tY - teleCenterY;
-                exportArray.forEach(obj => {
-                    let posKey = obj.pos ? 'pos' : (obj.Position ? 'Position' : null);
-                    let rotKey = obj.ypr ? 'ypr' : (obj.Orientation ? 'Orientation' : null);
-                    if (posKey) {
-                        let dx = obj[posKey][0] - teleCenterX;
-                        let dz = obj[posKey][2] - teleCenterZ;
-                        let rotatedX = dx * cosA + dz * sinA;
-                        let rotatedZ = -dx * sinA + dz * cosA;
-                        obj[posKey][0] = Math.round((tX + rotatedX) * 100000) / 100000;
-                        obj[posKey][1] = Math.round((obj[posKey][1] + shiftY) * 100000) / 100000;
-                        obj[posKey][2] = Math.round((tZ + rotatedZ) * 100000) / 100000;
-                    }
-                    if (rotKey) {
-                        let currentYaw = obj[rotKey][0];
-                        let finalYaw = (currentYaw + rotDegrees) % 360;
-                        if (finalYaw < 0) finalYaw += 360;
-                        obj[rotKey][0] = Math.round(finalYaw * 100000) / 100000;
-                    }
-                });
-            }
-
-            const fileBlob = new Blob([JSON.stringify(exportedData, null, 4)], { type: "application/json" });
-            const tempURL = URL.createObjectURL(fileBlob);
-            const downloadLink = document.createElement('a'); downloadLink.href = tempURL; downloadLink.download = teleOriginalFileName; 
-            document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink); URL.revokeObjectURL(tempURL);
-            triggerSupportNotification();
-        }
-
-        function setRotationValue(val) { document.getElementById('targetRotation').value = val; }
-
-        function triggerSupportNotification() {
-            const modal = document.getElementById('supportModal'), box = document.getElementById('modalBox');
-            modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
-        }
-
-        function closeSupportNotification() {
-            const modal = document.getElementById('supportModal'), box = document.getElementById('modalBox');
-            modal.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); }, 200);
+            }; reader.readAsText(file);
         }
 
         function processAndDownload() {
@@ -384,10 +239,7 @@
             let rotDegrees = targetHeading - originalBaseHeading;
             const shiftY = newY - originalCenterY, rad = rotDegrees * Math.PI / 180, cosA = Math.cos(rad), sinA = Math.sin(rad);
             const exportedData = JSON.parse(JSON.stringify(rawJsonData));
-            let exportArray = null;
-            if (exportedData.Objects && Array.isArray(exportedData.Objects)) exportArray = exportedData.Objects;
-            else if (exportedData.EditorObjects && Array.isArray(exportedData.EditorObjects)) exportArray = exportedData.EditorObjects;
-            else if (Array.isArray(exportedData)) exportArray = exportedData;
+            let exportArray = exportedData.Objects || exportedData.EditorObjects || (Array.isArray(exportedData) ? exportedData : null);
 
             exportArray.forEach(obj => {
                 let posKey = obj.pos ? 'pos' : (obj.Position ? 'Position' : null), rotKey = obj.ypr ? 'ypr' : (obj.Orientation ? 'Orientation' : null);
@@ -401,12 +253,168 @@
                     if (finalYaw < 0) finalYaw += 360; obj[rotKey][0] = Math.round(finalYaw * 100000) / 100000;
                 }
             });
+            downloadFile(JSON.stringify(exportedData, null, 2), originalFileName, "application/json");
+        }
+        let teleRawJsonData = null, teleOriginalFileName = "Relocated_Teleport.json", teleFileType = "";
+        let teleCenterX = 0, teleCenterY = 0, teleCenterZ = 0, safeCenterX = 0, safeCenterY = 0, safeCenterZ = 0, originalTeleHeading = 0;
 
-            const fileBlob = new Blob([JSON.stringify(exportedData, null, 2)], { type: "application/json" });
-            const tempURL = URL.createObjectURL(fileBlob);
-            const downloadLink = document.createElement('a'); downloadLink.href = tempURL; downloadLink.download = originalFileName; 
-            document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink); URL.revokeObjectURL(tempURL);
-            triggerSupportNotification();
+        function loadTeleportFile(file) {
+            if (!file) return; teleOriginalFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    teleRawJsonData = JSON.parse(e.target.result);
+                    let hasTeleportKeys = teleRawJsonData.PRABoxes || teleRawJsonData.safePositions3D;
+                    let teleObjectsArray = teleRawJsonData.Objects || teleRawJsonData.EditorObjects || (Array.isArray(teleRawJsonData) ? teleRawJsonData : null);
+                    let hasStructureObjects = teleObjectsArray && teleObjectsArray.length > 0;
+
+                    if (hasTeleportKeys && hasStructureObjects) teleFileType = "Mixed Profile (Teleport + Custom Buildings)";
+                    else if (hasTeleportKeys) teleFileType = "Mod Script Config Mapping";
+                    else if (hasStructureObjects) teleFileType = "Structures Map Build";
+                    else { alert("No verifiable coordinates found inside file."); return; }
+
+                    if (teleRawJsonData.PRABoxes && teleRawJsonData.PRABoxes[0] && teleRawJsonData.PRABoxes[0][2]) {
+                        let pCoords = teleRawJsonData.PRABoxes[0][2]; teleCenterX = pCoords[0]; teleCenterY = pCoords[1]; teleCenterZ = pCoords[2];
+                    } else if (hasStructureObjects) {
+                        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+                        teleObjectsArray.forEach(obj => {
+                            let pos = obj.pos || obj.Position;
+                            if (pos && pos.length >= 3) {
+                                if (pos[0] < minX) minX = pos[0]; if (pos[0] > maxX) maxX = pos[0];
+                                if (pos[1] < minY) minY = pos[1]; if (pos[1] > maxY) maxY = pos[1];
+                                if (pos[2] < minZ) minZ = pos[2]; if (pos[2] > maxZ) maxZ = pos[2];
+                            }
+                        });
+                        teleCenterX = (minX + maxX) / 2; teleCenterY = (minY + maxY) / 2; teleCenterZ = (minZ + maxZ) / 2;
+                    }
+
+                    if (teleRawJsonData.safePositions3D && teleRawJsonData.safePositions3D[0]) {
+                        let sCoords = teleRawJsonData.safePositions3D[0]; safeCenterX = sCoords[0]; safeCenterY = sCoords[1]; safeCenterZ = sCoords[2];
+                    } else { safeCenterX = teleCenterX; safeCenterY = teleCenterY; safeCenterZ = teleCenterZ; }
+
+                    originalTeleHeading = 0;
+                    if (hasStructureObjects) {
+                        let firstObj = teleObjectsArray[0], rotKey = firstObj.ypr ? 'ypr' : (firstObj.Orientation ? 'Orientation' : null);
+                        originalTeleHeading = (rotKey && firstObj[rotKey] && firstObj[rotKey].length > 0) ? firstObj[rotKey][0] : 0;
+                    }
+
+                    document.getElementById('teleDetectedType').innerText = teleFileType; document.getElementById('teleFileStatus').classList.remove('hidden');
+                    document.getElementById('teleX').innerText = teleCenterX.toFixed(2); document.getElementById('teleY').innerText = teleCenterY.toFixed(2); document.getElementById('teleZ').innerText = teleCenterZ.toFixed(2);
+                    document.getElementById('safeX').innerText = safeCenterX.toFixed(2); document.getElementById('safeY').innerText = safeCenterY.toFixed(2); document.getElementById('safeZ').innerText = safeCenterZ.toFixed(2);
+                    document.getElementById('teleTargetX').value = teleCenterX.toFixed(2); document.getElementById('teleTargetY').value = teleCenterY.toFixed(2); document.getElementById('teleTargetZ').value = teleCenterZ.toFixed(2);
+                    document.getElementById('teleTargetRotation').value = originalTeleHeading.toFixed(2); updateTeleportTargets();
+                } catch(err) { alert("JSON Parsing Fault: " + err.message); }
+            }; reader.readAsText(file);
+        }
+
+        function updateTeleportTargets() {
+            if (!teleRawJsonData) return;
+            const tX = parseFloat(document.getElementById('teleTargetX').value) || 0, tY = parseFloat(document.getElementById('teleTargetY').value) || 0, tZ = parseFloat(document.getElementById('teleTargetZ').value) || 0, targetHeading = parseFloat(document.getElementById('teleTargetRotation').value) || 0;
+            let rotDegrees = targetHeading - originalTeleHeading, rad = rotDegrees * Math.PI / 180, cosA = Math.cos(rad), sinA = Math.sin(rad);
+            let dx = safeCenterX - teleCenterX, dz = safeCenterZ - teleCenterZ, rotatedX = dx * cosA + dz * sinA, rotatedZ = -dx * sinA + dz * cosA, shiftY = tY - teleCenterY;
+            document.getElementById('safeTargetX').value = (tX + rotatedX).toFixed(2);
+            document.getElementById('safeTargetY').value = (safeCenterX === teleCenterX && safeCenterZ === teleCenterZ) ? tY.toFixed(2) : (safeCenterY + shiftY).toFixed(2);
+            document.getElementById('safeTargetZ').value = (tZ + rotatedZ).toFixed(2);
+        }
+
+        function processAndDownloadTeleport() {
+            if (!teleRawJsonData) { alert("Please upload a teleport mapping file."); return; }
+            const tX = parseFloat(document.getElementById('teleTargetX').value) || 0, tY = parseFloat(document.getElementById('teleTargetY').value) || 0, tZ = parseFloat(document.getElementById('teleTargetZ').value) || 0, targetHeading = parseFloat(document.getElementById('teleTargetRotation').value) || 0;
+            const sX = parseFloat(document.getElementById('safeTargetX').value) || 0, sY = parseFloat(document.getElementById('safeTargetY').value) || 0, sZ = parseFloat(document.getElementById('safeTargetZ').value) || 0;
+            let rotDegrees = targetHeading - originalTeleHeading, rad = rotDegrees * Math.PI / 180, cosA = Math.cos(rad), sinA = Math.sin(rad);
+            const exportedData = JSON.parse(JSON.stringify(teleRawJsonData));
+            
+            if (exportedData.PRABoxes && exportedData.PRABoxes[0] && exportedData.PRABoxes[0][2]) exportedData.PRABoxes[0][2] = [tX, tY, tZ];
+            if (exportedData.safePositions3D && exportedData.safePositions3D[0]) exportedData.safePositions3D[0] = [sX, sY, sZ];
+
+            let exportArray = exportedData.Objects || exportedData.EditorObjects || (Array.isArray(exportedData) ? exportedData : null);
+            if (exportArray && exportArray.length > 0 && teleFileType !== "Mod Script Config Mapping") {
+                const shiftY = tY - teleCenterY;
+                exportArray.forEach(obj => {
+                    let posKey = obj.pos ? 'pos' : (obj.Position ? 'Position' : null), rotKey = obj.ypr ? 'ypr' : (obj.Orientation ? 'Orientation' : null);
+                    if (posKey) {
+                        let dx = obj[posKey][0] - teleCenterX, dz = obj[posKey][2] - teleCenterZ, rotatedX = dx * cosA + dz * sinA, rotatedZ = -dx * sinA + dz * cosA;
+                        obj[posKey][0] = Math.round((tX + rotatedX) * 100000) / 100000; obj[posKey][1] = Math.round((obj[posKey][1] + shiftY) * 100000) / 100000; obj[posKey][2] = Math.round((tZ + rotatedZ) * 100000) / 100000;
+                    }
+                    if (rotKey) {
+                        let currentYaw = obj[rotKey][0], finalYaw = (currentYaw + rotDegrees) % 360;
+                        if (finalYaw < 0) finalYaw += 360; obj[rotKey][0] = Math.round(finalYaw * 100000) / 100000;
+                    }
+                });
+            }
+            downloadFile(JSON.stringify(exportedData, null, 4), teleOriginalFileName, "application/json");
+        }
+
+        let xmlDoc = null, xmlOriginalFileName = "cfgeventspawns_relocated.xml";
+        let xmlCenterX = 0, xmlCenterZ = 0, xmlOriginalHeading = 0;
+
+        function loadXmlFile(file) {
+            if (!file) return; xmlOriginalFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parser = new DOMParser();
+                    xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+                    const posNodes = xmlDoc.getElementsByTagName("pos");
+                    if (posNodes.length === 0) { alert("No <pos> tags found in XML file."); return; }
+
+                    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+                    for(let i=0; i<posNodes.length; i++) {
+                        let aVal = posNodes[i].getAttribute("a");
+                        if(aVal !== null) { xmlOriginalHeading = parseFloat(aVal); break; }
+                    }
+                    for(let i=0; i<posNodes.length; i++) {
+                        let x = parseFloat(posNodes[i].getAttribute("x")), z = parseFloat(posNodes[i].getAttribute("z"));
+                        if(!isNaN(x) && !isNaN(z)) {
+                            if (x < minX) minX = x; if (x > maxX) maxX = x;
+                            if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+                        }
+                    }
+
+                    xmlCenterX = (minX + maxX) / 2; xmlCenterZ = (minZ + maxZ) / 2;
+                    document.getElementById('xmlItemCount').innerText = posNodes.length; document.getElementById('xmlFileStatus').classList.remove('hidden');
+                    document.getElementById('xmlCurrX').innerText = xmlCenterX.toFixed(2); document.getElementById('xmlCenterZ').innerText = xmlCenterZ.toFixed(2);
+                    document.getElementById('xmlCurrHeading').innerText = xmlOriginalHeading.toFixed(1) + "°";
+                    document.getElementById('xmlTargetX').value = xmlCenterX.toFixed(2); document.getElementById('xmlTargetZ').value = xmlCenterZ.toFixed(2);
+                    document.getElementById('xmlTargetRotation').value = xmlOriginalHeading.toFixed(2);
+                } catch(err) { alert("XML Parsing Fault: " + err.message); }
+            }; reader.readAsText(file);
+        }
+
+        function processAndDownloadXml() {
+            if (!xmlDoc) { alert("Please upload an XML file first."); return; }
+            const newX = parseFloat(document.getElementById('xmlTargetX').value) || 0, newZ = parseFloat(document.getElementById('xmlTargetZ').value) || 0, targetHeading = parseFloat(document.getElementById('xmlTargetRotation').value) || 0;
+            let rotDegrees = targetHeading - xmlOriginalHeading, rad = rotDegrees * Math.PI / 180, cosA = Math.cos(rad), sinA = Math.sin(rad);
+            const posNodes = xmlDoc.getElementsByTagName("pos");
+            
+            for(let i=0; i<posNodes.length; i++) {
+                let node = posNodes[i], curX = parseFloat(node.getAttribute("x")), curZ = parseFloat(node.getAttribute("z")), curA = parseFloat(node.getAttribute("a"));
+                if(!isNaN(curX) && !isNaN(curZ)) {
+                    let dx = curX - xmlCenterX, dz = curZ - xmlCenterZ, rotatedX = dx * cosA + dz * sinA, rotatedZ = -dx * sinA + dz * cosA;
+                    node.setAttribute("x", (Math.round((newX + rotatedX) * 100000) / 100000).toString()); node.setAttribute("z", (Math.round((newZ + rotatedZ) * 100000) / 100000).toString());
+                }
+                if(!isNaN(curA)) {
+                    let finalYaw = (curA + rotDegrees) % 360;
+                    if (finalYaw < 0) finalYaw += 360; node.setAttribute("a", (Math.round(finalYaw * 100000) / 100000).toString());
+                }
+            }
+
+            const serializer = new XMLSerializer();
+            let xmlString = serializer.serializeToString(xmlDoc);
+            xmlString = xmlString.replace(/><\/event>/g, '>\n    </event>').replace(/<pos/g, '\n        <pos');
+            downloadFile(xmlString, xmlOriginalFileName, "text/xml");
+        }
+
+        function downloadFile(content, filename, type) {
+            const fileBlob = new Blob([content], { type: type }), tempURL = URL.createObjectURL(fileBlob), downloadLink = document.createElement('a');
+            downloadLink.href = tempURL; downloadLink.download = filename; document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink); URL.revokeObjectURL(tempURL);
+            const modal = document.getElementById('supportModal'), box = document.getElementById('modalBox');
+            modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+        }
+
+        function closeSupportNotification() {
+            const modal = document.getElementById('supportModal'), box = document.getElementById('modalBox');
+            modal.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); }, 200);
         }
     </script>
 </body>
